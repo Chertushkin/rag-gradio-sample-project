@@ -9,12 +9,12 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 
-EMB_MODEL_NAME = ""
-DB_TABLE_NAME = ""
-VECTOR_COLUMN_NAME = ""
-TEXT_COLUMN_NAME = ""
+EMB_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+DB_TABLE_NAME = "chunks"
+VECTOR_COLUMN_NAME = "embedding"
+TEXT_COLUMN_NAME = "text"
 INPUT_DIR = "/home/misha/Coursera/YDS.GenAI/proper/rag-gradio-sample-project/chunks_dump"
-db = lancedb.connect(".lancedb") # db location
+db = lancedb.connect(".lancedb")  # db location
 batch_size = 32
 
 model = SentenceTransformer(EMB_MODEL_NAME)
@@ -27,11 +27,7 @@ elif torch.cuda.is_available():
 else:
     device = "cpu"
 
-schema = pa.schema(
-  [
-      pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), 768)),
-      pa.field(TEXT_COLUMN_NAME, pa.string())
-  ])
+schema = pa.schema([pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), 384)), pa.field(TEXT_COLUMN_NAME, pa.string())])
 tbl = db.create_table(DB_TABLE_NAME, schema=schema, mode="overwrite")
 
 input_dir = Path(INPUT_DIR)
@@ -44,22 +40,19 @@ for file in files:
 
 for i in tqdm.tqdm(range(0, int(np.ceil(len(sentences) / batch_size)))):
     try:
-        batch = [sent for sent in sentences[i * batch_size:(i + 1) * batch_size] if len(sent) > 0]
+        batch = [sent for sent in sentences[i * batch_size : (i + 1) * batch_size] if len(sent) > 0]
         encoded = model.encode(batch, normalize_embeddings=True, device=device)
         encoded = [list(vec) for vec in encoded]
 
-        df = pd.DataFrame({
-            VECTOR_COLUMN_NAME: encoded,
-            TEXT_COLUMN_NAME: batch
-        })
-
+        df = pd.DataFrame({VECTOR_COLUMN_NAME: encoded, TEXT_COLUMN_NAME: batch})
         tbl.add(df)
-    except:
+    except Exception:
+        print(df)
         print(f"batch {i} was skipped")
 
-'''
+"""
 create ivf-pd index https://lancedb.github.io/lancedb/ann_indexes/
 with the size of the transformer docs, index is not really needed
 but we'll do it for demonstrational purposes
-'''
+"""
 tbl.create_index(num_partitions=256, num_sub_vectors=96, vector_column_name=VECTOR_COLUMN_NAME)

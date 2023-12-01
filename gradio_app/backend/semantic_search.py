@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
-EMB_MODEL_NAME = ""
-DB_TABLE_NAME = ""
+EMB_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+DB_TABLE_NAME = "chunks"
 
 # Setting up the logging
 logging.basicConfig(level=logging.INFO)
