@@ -7,7 +7,7 @@ import tqdm
 import pandas as pd
 from semantic_split import SentenceTransformersSimilarity, SimilarSentenceSplitter, SpacySentenceSplitter
 
-model = SentenceTransformersSimilarity()
+model = SentenceTransformersSimilarity(similarity_threshold=0.1)
 sentence_splitter = SpacySentenceSplitter()
 splitter = SimilarSentenceSplitter(model, sentence_splitter)
 TEXTS_DIR = "/home/misha/Coursera/YDS.GenAI/proper/rag-gradio-sample-project/docs_dump"
@@ -15,7 +15,7 @@ CHUNKS_DIR = "/home/misha/Coursera/YDS.GenAI/proper/rag-gradio-sample-project/ch
 
 
 def chunkinize_text(text: str) -> List[str]:
-    res = splitter.split(text)
+    res = splitter.split(text, group_max_sentences=15)
     chunks = [" ".join(x) for x in res]
     return chunks
 
