@@ -13,7 +13,7 @@ EMB_MODEL_NAME = ""
 DB_TABLE_NAME = ""
 VECTOR_COLUMN_NAME = ""
 TEXT_COLUMN_NAME = ""
-INPUT_DIR = "<chunked docs directory>"
+INPUT_DIR = "/home/misha/Coursera/YDS.GenAI/proper/rag-gradio-sample-project/chunks_dump"
 db = lancedb.connect(".lancedb") # db location
 batch_size = 32
 
