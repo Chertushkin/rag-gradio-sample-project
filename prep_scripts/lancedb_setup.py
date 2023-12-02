@@ -9,13 +9,15 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 
-EMB_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+# EMB_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+EMB_MODEL_NAME = "jinaai/jina-embeddings-v2-base-en"
+DIM = 768
 DB_TABLE_NAME = "chunks"
 VECTOR_COLUMN_NAME = "embedding"
 TEXT_COLUMN_NAME = "text"
 INPUT_DIR = "/home/misha/Coursera/YDS.GenAI/proper/rag-gradio-sample-project/chunks_dump"
 db = lancedb.connect(".lancedb")  # db location
-batch_size = 32
+batch_size = 1
 
 model = SentenceTransformer(EMB_MODEL_NAME)
 model.eval()
@@ -27,7 +29,7 @@ elif torch.cuda.is_available():
 else:
     device = "cpu"
 
-schema = pa.schema([pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), 384)), pa.field(TEXT_COLUMN_NAME, pa.string())])
+schema = pa.schema([pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), DIM)), pa.field(TEXT_COLUMN_NAME, pa.string())])
 tbl = db.create_table(DB_TABLE_NAME, schema=schema, mode="overwrite")
 
 input_dir = Path(INPUT_DIR)
@@ -46,8 +48,8 @@ for i in tqdm.tqdm(range(0, int(np.ceil(len(sentences) / batch_size)))):
 
         df = pd.DataFrame({VECTOR_COLUMN_NAME: encoded, TEXT_COLUMN_NAME: batch})
         tbl.add(df)
-    except Exception:
-        print(df)
+    except Exception as e:
+        print(e)
         print(f"batch {i} was skipped")
 
 """
